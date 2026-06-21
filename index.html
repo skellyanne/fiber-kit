@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#2b1d0e">
+<title>Gauge Calculator</title>
+<style>
+	* { box-sizing: border-box; margin: 0; padding: 0; }
+
+	body {
+		font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+		background: #2b1d0e;
+		color: #e0d8cf;
+		min-height: 100dvh;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		padding: 2rem 1.25rem;
+	}
+
+	h1 {
+		font-size: 1.5rem;
+		font-weight: 600;
+		margin-bottom: 1.5rem;
+		color: #c4a96a;
+	}
+
+	.card {
+		background: #3b2a18;
+		border-radius: 1rem;
+		padding: 1.5rem;
+		width: 100%;
+		max-width: 22rem;
+		box-shadow: 0 4px 24px rgba(0,0,0,0.3);
+	}
+
+	.unit-toggle {
+		display: flex;
+		background: #4a3728;
+		border-radius: 0.5rem;
+		overflow: hidden;
+		margin-bottom: 1.5rem;
+	}
+
+	.unit-toggle button {
+		flex: 1;
+		padding: 0.6rem;
+		border: none;
+		background: transparent;
+		color: #9a8a7a;
+		font-size: 0.95rem;
+		font-weight: 500;
+		cursor: pointer;
+		transition: background 0.2s, color 0.2s;
+	}
+
+	.unit-toggle button.active {
+		background: #4a7c59;
+		color: #fff;
+	}
+
+	.field {
+		margin-bottom: 1.25rem;
+	}
+
+	label {
+		display: block;
+		font-size: 0.85rem;
+		color: #9a8a7a;
+		margin-bottom: 0.35rem;
+	}
+
+	input[type="number"] {
+		width: 100%;
+		padding: 0.75rem;
+		border: 1px solid #4a3728;
+		border-radius: 0.5rem;
+		background: #2b1d0e;
+		color: #e0d8cf;
+		font-size: 1.1rem;
+		outline: none;
+		transition: border-color 0.2s;
+		-moz-appearance: textfield;
+	}
+
+	input[type="number"]::-webkit-inner-spin-button,
+	input[type="number"]::-webkit-outer-spin-button {
+		-webkit-appearance: none;
+	}
+
+	input[type="number"]::placeholder {
+		color: #7a6b5a;
+	}
+
+	input[type="number"]:focus {
+		border-color: #4a7c59;
+	}
+
+	.result {
+		background: #4a3728;
+		border-radius: 0.75rem;
+		padding: 1.25rem;
+		text-align: center;
+		min-height: 5rem;
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+	}
+
+	.result-value {
+		font-size: 2rem;
+		font-weight: 700;
+		color: #5a9e6a;
+		line-height: 1.2;
+	}
+
+	.result-detail {
+		font-size: 0.85rem;
+		color: #9a8a7a;
+		margin-top: 0.35rem;
+	}
+
+	.result-label {
+		font-size: 0.95rem;
+		color: #c4a96a;
+		margin-bottom: 0.5rem;
+	}
+
+	.result-empty {
+		color: #7a6b5a;
+		font-size: 0.95rem;
+	}
+</style>
+</head>
+<body>
+
+<h1>Gauge Calculator</h1>
+
+<div class="card">
+	<div class="unit-toggle">
+		<button id="btn-metric" class="active" onclick="setUnit('metric')">Metric</button>
+		<button id="btn-imperial" onclick="setUnit('imperial')">Imperial</button>
+	</div>
+
+	<div class="field">
+		<label for="count">Stitch or row count</label>
+		<input type="number" id="count" inputmode="decimal" step="any" min="0" placeholder="e.g. 18">
+	</div>
+
+	<div class="field">
+		<label for="measurement" id="measurement-label">Measured width or height (cm)</label>
+		<input type="number" id="measurement" inputmode="decimal" step="any" min="0" placeholder="e.g. 7.5">
+	</div>
+
+	<div class="result" id="result">
+		<span class="result-empty">Enter values above</span>
+	</div>
+</div>
+
+<script>
+let unit = 'metric';
+
+function setUnit(u) {
+	unit = u;
+	document.getElementById('btn-metric').className = u === 'metric' ? 'active' : '';
+	document.getElementById('btn-imperial').className = u === 'imperial' ? 'active' : '';
+	document.getElementById('measurement-label').textContent =
+		u === 'metric' ? 'Measured width or height (cm)' : 'Measured width or height (inches)';
+	calculate();
+}
+
+function calculate() {
+	const count = parseFloat(document.getElementById('count').value);
+	const measurement = parseFloat(document.getElementById('measurement').value);
+	const el = document.getElementById('result');
+
+	if (!count || !measurement || measurement <= 0) {
+		el.innerHTML = '<span class="result-empty">Enter values above</span>';
+		return;
+	}
+
+	let perUnit, gaugeValue, gaugeLabel, unitName, perUnitLabel;
+
+	if (unit === 'metric') {
+		perUnit = count / measurement;
+		gaugeValue = perUnit * 10;
+		unitName = 'cm';
+		perUnitLabel = 'per cm';
+		gaugeLabel = 'per 10 cm';
+	} else {
+		perUnit = count / measurement;
+		gaugeValue = perUnit * 4;
+		unitName = 'in';
+		perUnitLabel = 'per inch';
+		gaugeLabel = 'per 4 inches';
+	}
+
+	el.innerHTML =
+		'<div class="result-label">Gauge</div>' +
+		'<div class="result-value">' + Math.round(gaugeValue) + '</div>' +
+		'<div class="result-detail">' + round(gaugeValue, 2) + ' ' + gaugeLabel +
+		' &nbsp;·&nbsp; ' + round(perUnit, 2) + ' ' + perUnitLabel + '</div>';
+}
+
+function round(n, places) {
+	const f = Math.pow(10, places);
+	return Math.round(n * f) / f;
+}
+
+document.getElementById('count').addEventListener('input', calculate);
+document.getElementById('measurement').addEventListener('input', calculate);
+</script>
+
+</body>
+</html>
